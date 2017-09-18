@@ -10,7 +10,6 @@
 -author("sjanota").
 
 -include_lib("testutils/include/testing.hrl").
--include_lib("prox_misc/include/quick_prof.hrl").
 
 %% API
 -export([]).
@@ -22,10 +21,8 @@
 
 ?TEST_FUN().
 foreach_does_not_modify_stream() ->
-    ?QUICK_PROF(foreach, begin
-    Stream1 = ?QUICK_PROF(call, stream:foreach(?STREAM, fun(I) -> I * 2 end)),
-    assert_stream(Stream1, ?LIST)
-    end).
+    Stream1 = stream:foreach(?STREAM, fun(I) -> I * 2 end),
+    assert_stream(Stream1, ?LIST).
 
 ?TEST_FUN().
 map_test() ->
