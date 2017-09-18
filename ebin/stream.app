@@ -1,6 +1,6 @@
 % stream is a library not an application.
 % This file is for compatibility issues only.
-{application, prox_data, [
+{application, stream, [
     {description, "Stream data structure"},
     {vsn, "1.0"},
     {modules, [
