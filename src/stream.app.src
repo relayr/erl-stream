@@ -3,10 +3,11 @@
 {application, stream, [
     {description, "Stream data structure"},
     {vsn, "1.0.0"},
+    {licenses, ["MIT"]},
+    {links, [{"GitHub", "https://github.com/relayr/pdm-erl-stream"}]},
     {modules, [
         stream
     ]},
     {registered, []},
-    {applications, [kernel, stdlib]},
-    {licenses, ["MIT"]}
+    {applications, [kernel, stdlib]}
 ]}.
