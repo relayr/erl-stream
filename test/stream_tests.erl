@@ -102,7 +102,8 @@ from_file_error_test() ->
     Filename = ".stream.test",
     Fd = self(),
     ?MECK(file, [
-        {open, {ok, Fd}}
+        {open, {ok, Fd}},
+        {close, ok}
     ]),
     ?MECK_LOOP(file, [
         {read, [{ok, <<"Stre">>}, {ok, <<"am er">>}, {error, read_timeout}, {ok, <<"ror">>}]}
