@@ -89,6 +89,14 @@ flat_map_test() ->
     Map = stream:flat_map(S, F),
     assert_stream(Map, [1, 3, 2, 4]).
 
+?TEST_FUN().
+from_file_test() ->
+    Filename = ".stream.test",
+    ok = file:write_file(Filename, <<"This is a stream:from_file/1 test">>),
+    S = stream:from_file(Filename, 5),
+    ok = assert_stream(S, [<<"This ">>, <<"is a ">>, <<"strea">>, <<"m:fro">>, <<"m_fil">>, <<"e/1 t">>, <<"est">>]),
+    ok = file:delete(Filename).
+
 assert_stream(S, Expected) ->
     L = stream:to_list(S),
     ?assertEqual(Expected, L).

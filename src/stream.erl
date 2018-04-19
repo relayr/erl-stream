@@ -31,6 +31,8 @@
     flat_map/2,
     concat/2,
     from_stateful_reader/2,
+    from_file/1,
+    from_file/2,
     next/1]).
 
 -type stream(T) :: fun(() -> {Head :: T | end_of_stream, Tail :: fun(() -> stream(T))}).
@@ -81,6 +83,25 @@ concat(S1, S2) ->
             fun() -> S2() end,
             fun(H, T) -> {H, concat(T, S2)} end
         )
+    end.
+
+-spec from_file(File :: file:filename()) -> stream().
+from_file(Filename) when is_list(Filename) ->
+    NumBytes = 1024,
+    from_file(Filename, NumBytes).
+
+-spec from_file(File :: file:filename() | file:io_device(), NumBytes :: pos_integer()) -> stream().
+from_file(Filename, NumBytes) when is_list(Filename) ->
+    {ok, File} = file:open(Filename, [binary]),
+    from_file(File, NumBytes);
+from_file(File, NumBytes) when is_pid(File), is_integer(NumBytes), NumBytes > 0 ->
+    fun() ->
+        case file:read(File, NumBytes) of
+            {ok, Bytes} ->
+                {Bytes, from_file(File, NumBytes)};
+            eof ->
+                empty_result()
+        end
     end.
 
 %%%-------------------------------------------------------------------
