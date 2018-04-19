@@ -97,6 +97,20 @@ from_file_test() ->
     ok = assert_stream(S, [<<"This ">>, <<"is a ">>, <<"strea">>, <<"m:fro">>, <<"m_fil">>, <<"e/1 t">>, <<"est">>]),
     ok = file:delete(Filename).
 
+?TEST_FUN().
+from_file_error_test() ->
+    Filename = ".stream.test",
+    Fd = self(),
+    ?MECK(file, [
+        {open, {ok, Fd}}
+    ]),
+    ?MECK_LOOP(file, [
+        {read, [{ok, <<"Stre">>}, {ok, <<"am er">>}, {error, read_timeout}, {ok, <<"ror">>}]}
+    ]),
+    S = stream:from_file(Filename, 5),
+    ok = assert_stream(S, [<<"Stre">>, <<"am er">>, {error, read_timeout}]).
+
+
 assert_stream(S, Expected) ->
     L = stream:to_list(S),
     ?assertEqual(Expected, L).
