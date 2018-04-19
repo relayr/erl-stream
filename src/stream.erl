@@ -31,6 +31,8 @@
     flat_map/2,
     concat/2,
     from_stateful_reader/2,
+    from_file/1,
+    from_file/2,
     next/1]).
 
 -type stream(T) :: fun(() -> {Head :: T | end_of_stream, Tail :: fun(() -> stream(T))}).
@@ -39,6 +41,8 @@
 -export_type([stream/1, stream/0]).
 
 -type predicate(T) :: fun((T) -> boolean()).
+
+-define(DEFAULT_FILE_CHUNK_SIZE, 1024).
 
 %%%-------------------------------------------------------------------
 %%% Create
@@ -82,6 +86,15 @@ concat(S1, S2) ->
             fun(H, T) -> {H, concat(T, S2)} end
         )
     end.
+
+-spec from_file(File :: file:filename()) -> stream(binary()).
+from_file(Filename) when is_list(Filename) ->
+    from_file(Filename, ?DEFAULT_FILE_CHUNK_SIZE).
+
+-spec from_file(File :: file:filename(), ChunkSize :: pos_integer()) -> stream(binary()).
+from_file(Filename, ChunkSize) when is_list(Filename) ->
+    {ok, File} = file:open(Filename, [binary]),
+    stream_from_file(File, ChunkSize).
 
 %%%-------------------------------------------------------------------
 %%% Operate
@@ -216,3 +229,18 @@ transform(Stream, OnEmpty, OnNonEmpty) ->
 
 empty_result() ->
     {end_of_stream, empty()}.
+
+-spec stream_from_file(File :: file:io_device(), ChunkSize :: pos_integer()) -> stream(binary()).
+stream_from_file(File, ChunkSize) when is_pid(File), is_integer(ChunkSize), ChunkSize > 0 ->
+    fun() ->
+        case file:read(File, ChunkSize) of
+            {ok, Bytes} ->
+                {Bytes, stream_from_file(File, ChunkSize)};
+            {error, _} = Err ->
+                ok = file:close(File),
+                {Err, fun empty_result/0};
+            eof ->
+                ok = file:close(File),
+                empty_result()
+        end
+    end.
