@@ -239,6 +239,7 @@ stream_from_file(File, ChunkSize) when is_pid(File), is_integer(ChunkSize), Chun
             {error, _} = Err ->
                 {Err, fun empty_result/0};
             eof ->
+                ok = file:close(File),
                 empty_result()
         end
     end.
