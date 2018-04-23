@@ -87,11 +87,18 @@ concat(S1, S2) ->
         )
     end.
 
--spec from_file(File :: file:filename()) -> stream(binary()).
+%% @doc Create stream from disk file. When stream is consumed content of the file is read in 1024-byte chunks by default.
+%% In case of any error a tuple {error, ErrorReason} is returned by stream.
+%% If process that started consuming the stream is terminated then stream returns {error, terminated}.
+-spec from_file(File :: file:filename()) -> stream(binary() | {error, any()}).
 from_file(Filename) when is_list(Filename) ->
     from_file(Filename, ?DEFAULT_FILE_CHUNK_SIZE).
 
--spec from_file(File :: file:filename(), ChunkSize :: pos_integer()) -> stream(binary()).
+%% @doc Create stream from disk file with stream chunks of given size.
+%% When stream is consumed content of the file is read in chunks of ChunkSize-bytes.
+%% In case of any error a tuple {error, ErrorReason} is returned by stream.
+%% If process that started consuming the stream is terminated then stream returns {error, terminated}.
+-spec from_file(File :: file:filename(), ChunkSize :: pos_integer()) -> stream(binary() | {error, any()}).
 from_file(Filename, ChunkSize) when is_list(Filename) ->
     stream_from_file(Filename, ChunkSize).
 
