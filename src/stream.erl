@@ -87,14 +87,20 @@ concat(S1, S2) ->
         )
     end.
 
--spec from_file(File :: file:filename()) -> stream(binary()).
+%% @doc Create stream from disk file. When stream is consumed content of the file is read in 1024-byte chunks by default.
+%% In case of any error a tuple {error, ErrorReason} is returned by stream.
+%% If process that started consuming the stream is terminated then stream returns {error, terminated}.
+-spec from_file(File :: file:filename()) -> stream(binary() | {error, any()}).
 from_file(Filename) when is_list(Filename) ->
     from_file(Filename, ?DEFAULT_FILE_CHUNK_SIZE).
 
--spec from_file(File :: file:filename(), ChunkSize :: pos_integer()) -> stream(binary()).
+%% @doc Create stream from disk file with stream chunks of given size.
+%% When stream is consumed content of the file is read in chunks of ChunkSize-bytes.
+%% In case of any error a tuple {error, ErrorReason} is returned by stream.
+%% If process that started consuming the stream is terminated then stream returns {error, terminated}.
+-spec from_file(File :: file:filename(), ChunkSize :: pos_integer()) -> stream(binary() | {error, any()}).
 from_file(Filename, ChunkSize) when is_list(Filename) ->
-    {ok, File} = file:open(Filename, [binary]),
-    stream_from_file(File, ChunkSize).
+    stream_from_file(Filename, ChunkSize).
 
 %%%-------------------------------------------------------------------
 %%% Operate
@@ -230,7 +236,16 @@ transform(Stream, OnEmpty, OnNonEmpty) ->
 empty_result() ->
     {end_of_stream, empty()}.
 
--spec stream_from_file(File :: file:io_device(), ChunkSize :: pos_integer()) -> stream(binary()).
+-spec stream_from_file(File :: file:filename() | file:io_device(), ChunkSize :: pos_integer()) -> stream(binary()).
+stream_from_file(Filename, ChunkSize) when is_list(Filename) ->
+    fun() ->
+        case file:open(Filename, [binary]) of
+            {ok, File} ->
+                {<<>>, stream_from_file(File, ChunkSize)};
+            {error, _} = Err ->
+                {Err, fun empty_result/0}
+        end
+    end;
 stream_from_file(File, ChunkSize) when is_pid(File), is_integer(ChunkSize), ChunkSize > 0 ->
     fun() ->
         case file:read(File, ChunkSize) of
