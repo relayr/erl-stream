@@ -94,7 +94,17 @@ from_file_test() ->
     Filename = ".stream.test",
     ok = file:write_file(Filename, <<"This is a stream:from_file/1 test">>),
     S = stream:from_file(Filename, 5),
-    ok = assert_stream(S, [<<"This ">>, <<"is a ">>, <<"strea">>, <<"m:fro">>, <<"m_fil">>, <<"e/1 t">>, <<"est">>]),
+    ok = assert_stream(S, [<<>>, <<"This ">>, <<"is a ">>, <<"strea">>, <<"m:fro">>, <<"m_fil">>, <<"e/1 t">>, <<"est">>]),
+    ok = file:delete(Filename).
+
+?TEST_FUN().
+from_file_create_stream_in_another_process_test() ->
+    Filename = ".stream.test",
+    ok = file:write_file(Filename, <<"Create file stream in another process">>),
+    TestPID = self(),
+    spawn(fun() -> S = stream:from_file(Filename), TestPID ! {stream, S} end),
+    S = receive {stream, Stream} -> Stream end,
+    ok = assert_stream(S, [<<>>, <<"Create file stream in another process">>]),
     ok = file:delete(Filename).
 
 ?TEST_FUN().
@@ -109,7 +119,17 @@ from_file_error_test() ->
         {read, [{ok, <<"Stre">>}, {ok, <<"am er">>}, {error, read_timeout}, {ok, <<"ror">>}]}
     ]),
     S = stream:from_file(Filename, 5),
-    ok = assert_stream(S, [<<"Stre">>, <<"am er">>, {error, read_timeout}]).
+    ok = assert_stream(S, [<<>>, <<"Stre">>, <<"am er">>, {error, read_timeout}]).
+
+?TEST_FUN().
+from_file_open_error_test() ->
+    Filename = ".stream.test",
+    Fd = self(),
+    ?MECK(file, [
+        {open, {error, terminated}}
+    ]),
+    S = stream:from_file(Filename, 5),
+    ok = assert_stream(S, [{error, terminated}]).
 
 
 assert_stream(S, Expected) ->
