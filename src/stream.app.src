@@ -2,7 +2,7 @@
              [{description,"Stream data structure"},
               {vsn,"1.0.3"},
               {licenses,["MIT"]},
-              {links,[{"GitHub","https://github.com/relayr/pdm-erl-stream"}]},
+              {links,[{"GitHub","https://github.com/relayr/erl-stream"}]},
               {modules,[stream]},
               {registered,[]},
               {applications,[kernel,stdlib]}]}.
