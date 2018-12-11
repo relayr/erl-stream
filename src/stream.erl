@@ -188,11 +188,11 @@ to_list(Stream) ->
     L = reduce(Stream, [], fun(E, Acc) -> [E | Acc] end),
     lists:reverse(L).
 
--spec to_map(stream({K,V})) -> maps:map(K,V).
+-spec to_map(stream({K,V})) -> #{K => V}.
 to_map(Stream) ->
     reduce(Stream, #{}, fun({K, V}, Acc) -> maps:put(K, V, Acc) end).
 
--spec to_map(stream(T), fun((T) -> Key :: K), fun((T) -> Value :: V)) -> maps:map(K, V).
+-spec to_map(stream(T), fun((T) -> Key :: K), fun((T) -> Value :: V)) -> #{K => V}.
 to_map(Stream, ToKey, ToValue) ->
     to_map(map(Stream, fun(E) -> {ToKey(E), ToValue(E)} end)).
 
