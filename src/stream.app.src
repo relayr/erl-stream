@@ -1,6 +1,6 @@
 {application,stream,
              [{description,"Stream data structure"},
-              {vsn, "1.0.10"},
+              {vsn, "1.0.11"},
               {licenses,["MIT"]},
               {links,[{"GitHub","https://github.com/relayr/erl-stream"}]},
               {modules,[stream]},
